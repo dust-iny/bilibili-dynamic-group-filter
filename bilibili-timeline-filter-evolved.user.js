@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         B站动态分组过滤
 // @namespace    https://github.com/dust-iny/bilibili-dynamic-group-filter
-// @version      1.1.1
+// @version      1.1.2
 // @description  可配置多个关注分组合并为自定义标签，支持 Bilibili Evolved 夜间模式
 // @author       dust-iny
 // @match        https://t.bilibili.com/*
@@ -370,13 +370,28 @@
     let selectionVersion = 0;
     const memberCache = new Map();
     function defaultConfig(tags) {
-        const groups = [['画师和游戏', ['画师', '游戏']], ['科普和测评', ['科普', '测评']]];
-        return { version: CONFIG_VERSION, groups: groups.map(([name, names]) => ({ name, tagIds: tags.filter(t => names.includes(t.name)).map(t => Number(t.tagid)) })).filter(g => g.tagIds.length), restName: '其余分组' };
+        // Use the first two real groups as the initial labels so the script works
+        // for accounts that do not have the example group names.
+        const available = tags.filter(tag => Number(tag.tagid) !== 0);
+        if (!available.length) return { version: CONFIG_VERSION, groups: [], restName: '其余分组', defaultFallback: true };
+        const first = available[0];
+        const second = available[1] || first;
+        const secondName = second === first || second.name === first.name ? `${second.name}1` : second.name;
+        return {
+            version: CONFIG_VERSION,
+            defaultFallback: true,
+            groups: [
+                { name: first.name, tagIds: [Number(first.tagid)] },
+                { name: secondName, tagIds: [Number(second.tagid)] },
+            ],
+            restName: '其余分组',
+        };
     }
     function configKey() { return `btft-combined-v1:${GLOBAL_STATE.myUid}`; }
     function validateConfig(config) {
         if (!config || config.version !== CONFIG_VERSION || !Array.isArray(config.groups)) throw Error('配置格式不正确');
         const used = new Set();
+        const allowSharedFallback = config.defaultFallback === true;
         const groups = config.groups.map(g => {
             const name = String(g.name || '').trim();
             if (!name || name.length > 30) throw Error('每个标签需要 1～30 字的名称');
@@ -384,7 +399,7 @@
             const tagIds = g.tagIds.map(Number);
             for (const id of tagIds) {
                 if (!Number.isSafeInteger(id) || id === 0) throw Error('默认分组固定归入其余分组');
-                if (used.has(id)) throw Error('同一个关注分组只能分配给一个标签');
+                if (used.has(id) && !allowSharedFallback) throw Error('同一个关注分组只能分配给一个标签');
                 used.add(id);
             }
             return { name, tagIds };
