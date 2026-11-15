@@ -15,10 +15,7 @@
 ## 安装
 
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/)。
-2. 打开本项目中的 [`bilibili-timeline-filter-evolved.user.js`](bilibili-timeline-filter-evolved.user.js) 文件，点击 GitHub 页面右上角的 **Raw**，Tampermonkey 通常会自动识别并显示安装页面；也可以直接使用以下安装链接：
-
-   <https://raw.githubusercontent.com/dust-iny/bilibili-dynamic-group-filter/main/bilibili-timeline-filter-evolved.user.js>
-
+2. 通过 [GitHub](https://github.com/dust-iny/bilibili-dynamic-group-filter/raw/main/bilibili-timeline-filter-evolved.user.js) 安装。
 3. 如果以前安装过原版或旧版，请停用旧脚本，只保留本脚本启用。
 4. 打开或刷新 <https://t.bilibili.com/>。脚本需要在登录状态下使用。
 
